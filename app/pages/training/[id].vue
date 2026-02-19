@@ -113,8 +113,8 @@ type TrainingCourseRow = {
   created_at: string | null
 }
 
-const { $supabase } = useNuxtApp()
 const route = useRoute()
+const TRAINING_KEY = "yushi_training_courses"
 
 const id = computed(() => String(route.params.id || ""))
 
@@ -127,14 +127,14 @@ const loadCourse = async () => {
   loading.value = true
   error.value = ""
   try {
-    const { data, error: e } = await ($supabase as any)
-      .from("training_course")
-      .select("id, name, description, price, training_date, image_url, created_at")
-      .eq("id", id.value)
-      .maybeSingle()
-
-    if (e) throw e
-    course.value = data || null
+    if (typeof window === "undefined") {
+      course.value = null
+      return
+    }
+    const raw = localStorage.getItem(TRAINING_KEY)
+    const rows = raw ? JSON.parse(raw) : []
+    const list = Array.isArray(rows) ? (rows as TrainingCourseRow[]) : []
+    course.value = list.find((x) => String(x.id) === id.value) || null
     if (!course.value) error.value = "ไม่พบคอร์สนี้ (id ไม่ถูกต้อง)"
   } catch (err: any) {
     error.value = err?.message || "Failed to load training_course"

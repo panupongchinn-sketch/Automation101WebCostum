@@ -117,7 +117,7 @@ type ProductRow = {
   unit: string | null
 }
 
-const { $supabase } = useNuxtApp()
+const PRODUCTS_KEY = "yushi_products"
 
 // ✅ ใช้ค่า search จาก header (layout)
 const q = useState<string>("mb_search_q", () => "")
@@ -132,13 +132,13 @@ const loadProducts = async () => {
   loading.value = true
   error.value = ""
   try {
-    const { data, error: e } = await ($supabase as any)
-      .from("products")
-      .select("id, sku, name, category, image_url, unit")
-      .order("name", { ascending: true })
-
-    if (e) throw e
-    products.value = Array.isArray(data) ? (data as ProductRow[]) : []
+    if (typeof window === "undefined") {
+      products.value = []
+      return
+    }
+    const raw = localStorage.getItem(PRODUCTS_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    products.value = Array.isArray(arr) ? (arr as ProductRow[]) : []
   } catch (err: any) {
     error.value = err?.message || "Unknown error"
     products.value = []

@@ -498,8 +498,8 @@ type PartnerLogoRow = {
   updatedAt: string
 }
 
-/** =================== PRODUCTS (Supabase) =================== */
-const { $supabase } = useNuxtApp()
+/** =================== PRODUCTS (LocalStorage) =================== */
+const PRODUCTS_KEY = "yushi_products"
 const fallbackImg = "https://picsum.photos/seed/product/1200/900"
 const PARTNERS_KEY = "yushi_partner_logos"
 
@@ -545,14 +545,13 @@ const loadProducts = async () => {
   loading.value = true
   error.value = ""
   try {
-    const { data, error: e } = await ($supabase as any)
-      .from("products")
-      .select("id, sku, name, category, image_url, unit, brand")
-      .order("brand", { ascending: true, nullsFirst: false })
-      .order("name", { ascending: true })
-
-    if (e) throw e
-    products.value = (data || []) as ProductRow[]
+    if (typeof window === "undefined") {
+      products.value = []
+      return
+    }
+    const raw = localStorage.getItem(PRODUCTS_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    products.value = Array.isArray(arr) ? (arr as ProductRow[]) : []
   } catch (err: any) {
     error.value = err?.message || "Failed to load products"
     products.value = []

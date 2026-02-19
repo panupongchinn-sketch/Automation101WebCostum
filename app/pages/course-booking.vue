@@ -203,8 +203,8 @@
 </template>
 
 <script setup lang="ts">
-const { $supabase } = useNuxtApp()
 const route = useRoute()
+const CONTACT_MESSAGES_KEY = "yushi_contact_messages"
 
 useState<string>("mb_search_q", () => "")
 
@@ -258,6 +258,10 @@ const submit = async () => {
     // ✅ ส่งให้ตรงกับ SQL: public.contact_message
     // column: full_name, phone, company, email, subject, detail, source_page
     const payload = {
+      id:
+        typeof globalThis !== "undefined" && (globalThis as any).crypto?.randomUUID
+          ? (globalThis as any).crypto.randomUUID()
+          : `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
       full_name: fullName,
       phone: (form.value.phone || "").trim() || null,
       company: (form.value.company || "").trim() || null,
@@ -265,13 +269,14 @@ const submit = async () => {
       subject: (form.value.subject || "").trim() || null,
       detail: detail,
       source_page: route.fullPath,
+      created_at: new Date().toISOString(),
     }
 
-    const { error: e } = await ($supabase as any)
-      .from("contact_message")
-      .insert(payload)
-
-    if (e) throw e
+    if (typeof window === "undefined") throw new Error("Client storage unavailable")
+    const raw = window.localStorage.getItem(CONTACT_MESSAGES_KEY)
+    const rows = raw ? JSON.parse(raw) : []
+    const nextRows = Array.isArray(rows) ? [payload, ...rows] : [payload]
+    window.localStorage.setItem(CONTACT_MESSAGES_KEY, JSON.stringify(nextRows))
 
     success.value = true
     resetForm()

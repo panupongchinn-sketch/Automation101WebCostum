@@ -199,7 +199,7 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 
-const { $supabase } = useNuxtApp();
+const INVOICE_KEY = "yushi_invoice_requests";
 
 type InvoiceInsert = {
   customer_name: string;
@@ -258,8 +258,19 @@ const submitInvoice = async () => {
       details: form.details.trim(),
     };
 
-    const { error: e } = await ($supabase as any).from("invoice").insert(payload);
-    if (e) throw e;
+    if (typeof window === "undefined") throw new Error("Client storage unavailable");
+    const row = {
+      id:
+        typeof globalThis !== "undefined" && (globalThis as any).crypto?.randomUUID
+          ? (globalThis as any).crypto.randomUUID()
+          : `inv_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      ...payload,
+      created_at: new Date().toISOString(),
+    };
+    const raw = window.localStorage.getItem(INVOICE_KEY);
+    const rows = raw ? JSON.parse(raw) : [];
+    const nextRows = Array.isArray(rows) ? [row, ...rows] : [row];
+    window.localStorage.setItem(INVOICE_KEY, JSON.stringify(nextRows));
 
     success.value = true;
     resetForm();

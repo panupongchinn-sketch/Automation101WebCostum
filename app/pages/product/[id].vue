@@ -157,8 +157,8 @@ type ProductRow = {
   unit: string | null
 }
 
-const { $supabase } = useNuxtApp()
 const route = useRoute()
+const PRODUCTS_KEY = "yushi_products"
 
 const id = computed(() => String(route.params.id || ''))
 
@@ -175,14 +175,14 @@ const loadProduct = async () => {
   loading.value = true
   error.value = ''
   try {
-    const { data, error: e } = await ($supabase as any)
-      .from('products')
-      .select('id, sku, name, category, image_url, unit')
-      .eq('id', id.value)
-      .maybeSingle()
-
-    if (e) throw e
-    product.value = (data || null) as ProductRow | null
+    if (typeof window === "undefined") {
+      product.value = null
+      return
+    }
+    const raw = localStorage.getItem(PRODUCTS_KEY)
+    const rows = raw ? JSON.parse(raw) : []
+    const list = Array.isArray(rows) ? (rows as ProductRow[]) : []
+    product.value = list.find((x) => String(x.id) === id.value) || null
     if (!product.value) error.value = 'ไม่พบสินค้านี้ (id ไม่ถูกต้อง)'
   } catch (err: any) {
     error.value = err?.message || 'Failed to load product'

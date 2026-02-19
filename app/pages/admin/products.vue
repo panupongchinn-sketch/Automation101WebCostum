@@ -196,7 +196,6 @@ type ProductRow = {
   brand: string | null
 }
 
-const { $supabase } = useNuxtApp()
 const LOCAL_PRODUCTS_KEY = "yushi_products"
 
 const products = ref<ProductRow[]>([])
@@ -212,8 +211,6 @@ const form = reactive({
   unit: "",
   imageDataUrl: "",
 })
-
-const getSupabase = () => ($supabase as any) || null
 
 const uid = () => {
   if (typeof globalThis !== "undefined" && (globalThis as any).crypto?.randomUUID) {
@@ -275,25 +272,12 @@ const loadProducts = async () => {
   loading.value = true
   errorMsg.value = ""
   try {
-    const supabase = getSupabase()
-    if (!supabase) {
-      products.value = readLocalProducts().sort((a, b) => {
-        const brandA = (a.brand || "").toLowerCase()
-        const brandB = (b.brand || "").toLowerCase()
-        if (brandA !== brandB) return brandA.localeCompare(brandB)
-        return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase())
-      })
-      return
-    }
-
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, sku, name, category, image_url, unit, brand")
-      .order("brand", { ascending: true, nullsFirst: false })
-      .order("name", { ascending: true })
-
-    if (error) throw error
-    products.value = (data || []) as ProductRow[]
+    products.value = readLocalProducts().sort((a, b) => {
+      const brandA = (a.brand || "").toLowerCase()
+      const brandB = (b.brand || "").toLowerCase()
+      if (brandA !== brandB) return brandA.localeCompare(brandB)
+      return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase())
+    })
   } catch (e: any) {
     errorMsg.value = e?.message || "โหลดสินค้าล้มเหลว"
     products.value = []
@@ -322,14 +306,8 @@ const createProduct = async () => {
       image_url: form.imageDataUrl || null,
     }
 
-    const supabase = getSupabase()
-    if (!supabase) {
-      const nextRows = [{ id: uid(), ...payload } as ProductRow, ...readLocalProducts()]
-      writeLocalProducts(nextRows)
-    } else {
-      const { error } = await supabase.from("products").insert(payload)
-      if (error) throw error
-    }
+    const nextRows = [{ id: uid(), ...payload } as ProductRow, ...readLocalProducts()]
+    writeLocalProducts(nextRows)
 
     successMsg.value = "เพิ่มสินค้าสำเร็จ"
     resetForm()
@@ -345,14 +323,8 @@ const deleteProduct = async (id: string) => {
   if (!window.confirm("ลบสินค้านี้ใช่ไหม?")) return
 
   try {
-    const supabase = getSupabase()
-    if (!supabase) {
-      const nextRows = readLocalProducts().filter((x) => x.id !== id)
-      writeLocalProducts(nextRows)
-    } else {
-      const { error } = await supabase.from("products").delete().eq("id", id)
-      if (error) throw error
-    }
+    const nextRows = readLocalProducts().filter((x) => x.id !== id)
+    writeLocalProducts(nextRows)
     successMsg.value = "ลบสินค้าแล้ว"
     await loadProducts()
   } catch (e: any) {

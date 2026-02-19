@@ -105,7 +105,7 @@ type TrainingCourseRow = {
   created_at: string | null
 }
 
-const { $supabase } = useNuxtApp()
+const TRAINING_KEY = "yushi_training_courses"
 
 // ✅ ใช้ search จาก header (layout)
 const q = useState<string>("mb_search_q", () => "")
@@ -119,13 +119,13 @@ const loadCourses = async () => {
   loading.value = true
   error.value = ""
   try {
-    const { data, error: e } = await ($supabase as any)
-      .from("training_course")
-      .select("id, name, description, price, training_date, image_url, created_at")
-      .order("training_date", { ascending: true })
-
-    if (e) throw e
-    courses.value = Array.isArray(data) ? (data as TrainingCourseRow[]) : []
+    if (typeof window === "undefined") {
+      courses.value = []
+      return
+    }
+    const raw = localStorage.getItem(TRAINING_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    courses.value = Array.isArray(arr) ? (arr as TrainingCourseRow[]) : []
   } catch (err: any) {
     error.value = err?.message || "Failed to load training_course"
     courses.value = []
