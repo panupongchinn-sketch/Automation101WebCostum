@@ -68,21 +68,67 @@
           <div class="xl:col-span-8 space-y-6">
             <div class="glass-card overflow-hidden rounded-3xl">
               <div class="border-b border-white/60 p-4 sm:p-6">
-                <div class="image-wrap overflow-hidden rounded-2xl border border-slate-100/70 bg-white/85">
+                <div class="image-wrap relative overflow-hidden rounded-2xl border border-slate-100/70 bg-white/85">
                   <img
-                    :src="product?.image_url || fallbackImg"
+                    :src="currentImageSrc"
                     :alt="product?.name || 'product'"
                     class="h-full w-full object-contain p-4"
                     loading="lazy"
                     @error="onImgError"
                   />
+                  <template v-if="productImages.length > 1">
+                    <button
+                      type="button"
+                      class="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/85 text-xl font-bold text-slate-700 shadow-sm backdrop-blur hover:bg-white"
+                      aria-label="Previous image"
+                      @click="prevImage"
+                    >&lt;</button>
+                    <button
+                      type="button"
+                      class="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/85 text-xl font-bold text-slate-700 shadow-sm backdrop-blur hover:bg-white"
+                      aria-label="Next image"
+                      @click="nextImage"
+                    >&gt;</button>
+                    <div class="absolute bottom-3 right-3 rounded-full bg-black/65 px-2.5 py-1 text-xs font-semibold text-white">
+                      {{ activeImageIndex + 1 }} / {{ productImages.length }}
+                    </div>
+                  </template>
+                </div>
+                <div v-if="productImages.length > 1" class="mt-4 flex gap-2 overflow-x-auto pb-1">
+                  <button
+                    v-for="(img, idx) in productImages"
+                    :key="`${product?.id || 'p'}-${idx}`"
+                    type="button"
+                    class="shrink-0 overflow-hidden rounded-xl border-2 bg-white"
+                    :class="idx === activeImageIndex ? 'border-[#0B4AA2]' : 'border-transparent'"
+                    @click="selectImage(idx)"
+                  >
+                    <img
+                      :src="img"
+                      :alt="`${product?.name || 'product'} thumbnail ${idx + 1}`"
+                      class="h-16 w-16 object-cover"
+                      loading="lazy"
+                    />
+                  </button>
                 </div>
               </div>
 
               <div class="p-4 sm:p-6">
                 <h2 class="text-lg font-extrabold text-slate-900">ข้อมูลสินค้า</h2>
 
+                <div class="mt-4 rounded-2xl border border-slate-200/70 bg-white/80 p-4">
+                  <div class="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">Description</div>
+                  <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
+                    {{ product?.description?.trim() || 'ไม่มีรายละเอียดสินค้า' }}
+                  </p>
+                </div>
+
                 <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div class="spec-card">
+                    <div class="spec-label">Brand</div>
+                    <div class="spec-value">{{ product?.brand || '-' }}</div>
+                  </div>
+
                   <div class="spec-card">
                     <div class="spec-label">SKU</div>
                     <div class="spec-value">{{ product?.sku || '-' }}</div>
@@ -152,9 +198,12 @@ type ProductRow = {
   id: string
   sku: string | null
   name: string | null
+  description?: string | null
   category: string | null
   image_url: string | null
+  image_urls?: string[] | null
   unit: string | null
+  brand?: string | null
 }
 
 const route = useRoute()
@@ -167,6 +216,20 @@ const fallbackImg = 'https://picsum.photos/seed/productdetail/1200/900'
 const product = ref<ProductRow | null>(null)
 const loading = ref(true)
 const error = ref('')
+const activeImageIndex = ref(0)
+
+const productImages = computed(() => {
+  const many = (product.value?.image_urls || []).filter(Boolean)
+  if (many.length) return many
+  return [product.value?.image_url || fallbackImg].filter(Boolean)
+})
+
+const currentImageSrc = computed(() => {
+  const images = productImages.value
+  if (!images.length) return fallbackImg
+  const safeIndex = Math.min(Math.max(activeImageIndex.value, 0), images.length - 1)
+  return images[safeIndex] || fallbackImg
+})
 
 useHead(() => ({
   title: `${product.value?.name || 'รายละเอียดสินค้า'} | probuild`,
@@ -178,10 +241,12 @@ const loadProduct = async () => {
   try {
     const list = await getValue<ProductRow>(PRODUCTS_KEY)
     product.value = list.find((x) => String(x.id) === id.value) || null
+    activeImageIndex.value = 0
     if (!product.value) error.value = 'ไม่พบสินค้านี้ (id ไม่ถูกต้อง)'
   } catch (err: any) {
     error.value = err?.message || 'Failed to load product'
     product.value = null
+    activeImageIndex.value = 0
   } finally {
     loading.value = false
   }
@@ -190,6 +255,24 @@ const loadProduct = async () => {
 const onImgError = (e: Event) => {
   const el = e.target as HTMLImageElement | null
   if (el) el.src = fallbackImg
+}
+
+const selectImage = (index: number) => {
+  const max = productImages.value.length - 1
+  if (max < 0) return
+  activeImageIndex.value = Math.min(Math.max(index, 0), max)
+}
+
+const prevImage = () => {
+  const len = productImages.value.length
+  if (len <= 1) return
+  activeImageIndex.value = (activeImageIndex.value - 1 + len) % len
+}
+
+const nextImage = () => {
+  const len = productImages.value.length
+  if (len <= 1) return
+  activeImageIndex.value = (activeImageIndex.value + 1) % len
 }
 
 const goContact = async () => {

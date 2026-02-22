@@ -66,11 +66,11 @@
             <div class="mt-4 space-y-3 text-sm">
               <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
                 <div class="text-xs font-semibold text-slate-500">โทรศัพท์</div>
-                <div class="mt-1 font-semibold text-slate-900">091-776-2859</div>
+                <div class="mt-1 font-semibold text-slate-900">0-2929-6200</div>
               </div>
               <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
                 <div class="text-xs font-semibold text-slate-500">อีเมล</div>
-                <div class="mt-1 font-semibold text-slate-900 break-all">automation101training@gmail.com</div>
+                <div class="mt-1 font-semibold text-slate-900 break-all">info@probuildthai.com</div>
               </div>
               <button
                 class="w-full inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800"
@@ -221,7 +221,7 @@
               </span>
               <div>
                 <div class="font-semibold text-slate-900">ที่อยู่</div>
-                <div class="mt-1 text-slate-600">อ.เมือง จ.ร้อยเอ็ด 450000</div>
+                <div class="mt-1 text-slate-600">335,337 ถนนช่างอากาศอุทิศ แขวงดอนเมือง เขตดอนเมือง กรุงเทพมหานคร 10210</div>
               </div>
             </div>
 
@@ -233,7 +233,7 @@
               </span>
               <div>
                 <div class="font-semibold text-slate-900">โทร</div>
-                <div class="mt-1 text-slate-600">0917762859</div>
+                <div class="mt-1 text-slate-600">0-2929-6200 / Hotline 086-3223421, 086-3162034</div>
               </div>
             </div>
 
@@ -245,13 +245,13 @@
               </span>
               <div>
                 <div class="font-semibold text-slate-900">อีเมล</div>
-                <div class="mt-1 break-all text-slate-600">automation101training@gmail.com</div>
+                <div class="mt-1 break-all text-slate-600">puchaya@probuildthai.com, info@probuildthai.com</div>
               </div>
             </div>
 
             <div class="rounded-2xl border border-slate-200 bg-white p-4">
               <div class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">เวลาทำการ</div>
-              <div class="mt-2 text-sm font-medium text-slate-700">จันทร์-ศุกร์ 09:00-18:00</div>
+              <div class="mt-2 text-sm font-medium text-slate-700">จันทร์-ศุกร์ 08:30-17:30</div>
             </div>
           </div>
         </div>
@@ -261,12 +261,13 @@
             <h2 class="text-lg font-bold text-slate-900">แผนที่</h2>
           </div>
           <div class="p-4 sm:p-5">
-            <div class="map-placeholder aspect-[16/10] rounded-2xl border border-slate-200">
-              <div class="text-center">
-                <div class="text-sm font-semibold text-slate-700">พื้นที่แสดงแผนที่</div>
-                <div class="mt-1 text-xs text-slate-500">สามารถใส่ Google Maps embed ได้ภายหลัง</div>
-              </div>
-            </div>
+            <iframe
+              title="Probuild Thailand Map"
+              src="https://www.google.com/maps?q=%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%A9%E0%B8%B1%E0%B8%97%20%E0%B9%82%E0%B8%9B%E0%B8%A3-%E0%B8%9A%E0%B8%B4%E0%B8%A5%E0%B8%94%E0%B9%8C%20(%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8%E0%B9%84%E0%B8%97%E0%B8%A2)%20%E0%B8%88%E0%B8%B3%E0%B8%81%E0%B8%B1%E0%B8%94&output=embed"
+              class="h-full min-h-[220px] w-full rounded-2xl border border-slate-200"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
         </div>
 

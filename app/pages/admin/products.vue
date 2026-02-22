@@ -26,6 +26,13 @@
         </div>
 
         <form class="p-5 space-y-4" @submit.prevent="createProduct">
+          <div
+            v-if="editingId"
+            class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+          >
+            กำลังแก้ไขรายการสินค้า
+          </div>
+
           <div>
             <label class="mb-1 block text-sm font-semibold text-slate-700">ชื่อสินค้า *</label>
             <input
@@ -164,14 +171,14 @@
               type="submit"
               class="h-11 flex-1 rounded-xl bg-[#ff6b2c] px-5 text-sm font-semibold text-white hover:bg-[#ff7c45]"
             >
-              เพิ่มสินค้า
+              {{ editingId ? 'บันทึกการแก้ไข' : 'เพิ่มสินค้า' }}
             </button>
             <button
               type="button"
               class="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               @click="resetForm"
             >
-              ล้างฟอร์ม
+              {{ editingId ? 'ยกเลิกแก้ไข' : 'ล้างฟอร์ม' }}
             </button>
           </div>
         </form>
@@ -220,13 +227,22 @@
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  class="h-9 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 hover:bg-red-100"
-                  @click="deleteProduct(p.id)"
-                >
-                  ลบ
-                </button>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class="h-9 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                    @click="startEditProduct(p)"
+                  >
+                    แก้ไข
+                  </button>
+                  <button
+                    type="button"
+                    class="h-9 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 hover:bg-red-100"
+                    @click="deleteProduct(p.id)"
+                  >
+                    ลบ
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -262,6 +278,7 @@ const loading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
 const dragThumbIndex = ref<number | null>(null)
+const editingId = ref<string | null>(null)
 
 const form = reactive({
   name: '',
@@ -282,6 +299,7 @@ const uid = () => {
 }
 
 const resetForm = () => {
+  editingId.value = null
   form.name = ''
   form.description = ''
   form.brand = ''
@@ -290,6 +308,22 @@ const resetForm = () => {
   form.unit = ''
   form.imageDataUrl = ''
   form.imageDataUrls = []
+}
+
+const startEditProduct = (p: ProductRow) => {
+  editingId.value = p.id
+  form.name = p.name || ''
+  form.description = p.description || ''
+  form.brand = p.brand || ''
+  form.sku = p.sku || ''
+  form.category = p.category || ''
+  form.unit = p.unit || ''
+  form.imageDataUrls = Array.isArray(p.image_urls) && p.image_urls.length
+    ? [...p.image_urls]
+    : (p.image_url ? [p.image_url] : [])
+  form.imageDataUrl = form.imageDataUrls[0] || ''
+  errorMsg.value = ''
+  successMsg.value = ''
 }
 
 const fileToDataUrl = (file: File) =>
@@ -383,14 +417,26 @@ const createProduct = async () => {
     }
 
     const current = await getValue<ProductRow>(STORE_KEY)
-    const nextRows = [{ id: uid(), ...payload } as ProductRow, ...current]
-    await setValue<ProductRow>(STORE_KEY, nextRows)
 
-    successMsg.value = 'เพิ่มสินค้าสำเร็จ'
+    if (editingId.value) {
+      const targetId = editingId.value
+      const nextRows = current.map((x) => (
+        x.id === targetId
+          ? ({ ...x, ...payload, id: x.id } as ProductRow)
+          : x
+      ))
+      await setValue<ProductRow>(STORE_KEY, nextRows)
+      successMsg.value = 'บันทึกการแก้ไขสินค้าแล้ว'
+    } else {
+      const nextRows = [{ id: uid(), ...payload } as ProductRow, ...current]
+      await setValue<ProductRow>(STORE_KEY, nextRows)
+      successMsg.value = 'เพิ่มสินค้าสำเร็จ'
+    }
+
     resetForm()
     await loadProducts()
   } catch (e: any) {
-    errorMsg.value = e?.message || 'เพิ่มสินค้าไม่สำเร็จ'
+    errorMsg.value = e?.message || (editingId.value ? 'บันทึกการแก้ไขไม่สำเร็จ' : 'เพิ่มสินค้าไม่สำเร็จ')
   }
 }
 

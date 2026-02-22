@@ -8,7 +8,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       link: [
-        { rel: "icon", type: "image/x-icon", href: "/1.ico" },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=2" },
+        { rel: "alternate icon", type: "image/x-icon", href: "/1.ico" },
       ],
     },
   },
